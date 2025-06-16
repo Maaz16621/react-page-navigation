@@ -207,7 +207,7 @@ const App: React.FC = () => {
   }, []);
   
   return (
-    <div className="flex flex-col items-center min-h-screen pt-10 px-4">
+    <div className="flex flex-col items-center min-h-screen pt-10 px-4 bg-[#444444]">
       <PageNavigation
         pages={pages}
         activePageId={activePageId}

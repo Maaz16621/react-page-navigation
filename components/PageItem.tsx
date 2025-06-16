@@ -46,13 +46,13 @@ const PageItem: React.FC<PageItemProps> = ({
   }
 
   // Base classes for the PageItem container
-  const baseItemClasses = "flex items-center px-3 py-2 h-10 rounded-md cursor-grab transition-all duration-150 ease-in-out group flex-shrink-0 border border-transparent";
+  const baseItemClasses = "flex items-center px-3 py-2 h-10 rounded-md cursor-grab transition-all duration-150 ease-in-out group flex-shrink-0 border"; // Added 'border' for consistent 1px border width
   
   // Classes for active state
-  const activeItemClasses = "bg-white text-slate-800 shadow-sm";
+  const activeItemClasses = "bg-white text-slate-800 shadow-sm border-[#2F72E2]"; // Added blue border
   
   // Classes for inactive state (using arbitrary values for hex with alpha)
-  const inactiveItemClasses = "bg-[#9DA4B226] text-slate-600 hover:bg-[#9DA4B259] hover:text-slate-700";
+  const inactiveItemClasses = "bg-[#9DA4B226] text-slate-600 hover:bg-[#9DA4B259] hover:text-slate-700 border-transparent"; // Explicitly transparent border
   
   // Classes for when the item is being dragged
   const draggedItemClasses = "opacity-50 scale-95 shadow-lg";

@@ -64,9 +64,9 @@ const PageNavigation: React.FC<PageNavigationProps> = ({
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
+    <div className="w-full  mx-auto">
       <div 
-        className="flex items-center bg-gray-100 p-2 rounded-lg shadow-md overflow-x-auto min-h-[64px]"
+        className="flex items-center bg-gray-100 p-2 rounded-lg shadow-md overflow-x-auto min-h-[64px] border border-yellow-400"
         role="toolbar"
         aria-label="Page navigation"
       >
