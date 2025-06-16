@@ -1,8 +1,7 @@
-
 import React, { useState, useCallback, useRef } from 'react';
-import type { Page, ContextMenuState } from '../types'; // Corrected path
-import { INITIAL_PAGES } from '../constants'; // Corrected path
-import PageNavigation from './PageNavigation'; // Corrected path
+import type { Page, ContextMenuState } from '../types'; 
+import { INITIAL_PAGES } from '../constants'; 
+import PageNavigation from './PageNavigation'; 
 
 const App: React.FC = () => {
   const [pages, setPages] = useState<Page[]>(INITIAL_PAGES);
@@ -17,11 +16,28 @@ const App: React.FC = () => {
 
   const handleSelectPage = useCallback((id: string) => {
     setActivePageId(id);
-    setContextMenuState(null); // Close context menu on page selection
+    setContextMenuState(null); 
   }, []);
 
   const handleAddPage = useCallback((index: number) => {
-    const newPageName = `New Page ${pages.length + 1}`;
+    let newPageName = "New Page";
+    let counter = 1; // Start counter at 1 for appending
+    const existingNames = new Set(pages.map(p => p.name));
+    
+    // Create a base name if "New Page" itself is taken
+    if (existingNames.has(newPageName)) {
+        newPageName = `New Page ${pages.length + 1}`; 
+    }
+
+    // Ensure unique name by appending counter if needed
+    while (existingNames.has(newPageName)) {
+      counter++;
+      newPageName = `New Page ${pages.length + counter}`;
+    }
+     // Final fallback if somehow still clashing (highly unlikely with the above)
+    if (existingNames.has(newPageName)) newPageName = `Page ${self.crypto.randomUUID().substring(0,4)}`;
+
+
     const newPage: Page = { id: self.crypto.randomUUID(), name: newPageName };
     setPages(currentPages => {
       const newPages = [...currentPages];
@@ -30,7 +46,7 @@ const App: React.FC = () => {
     });
     setActivePageId(newPage.id);
     setContextMenuState(null);
-  }, [pages.length]);
+  }, [pages]);
 
   const handleDeletePage = useCallback((id: string) => {
     setPages(currentPages => {
@@ -38,7 +54,9 @@ const App: React.FC = () => {
       const newPages = currentPages.filter(page => page.id !== id);
       if (activePageId === id) {
         if (newPages.length > 0) {
-          setActivePageId(newPages[Math.max(0, pageIndexToDelete - 1)]?.id || newPages[0]?.id || null);
+          // Try to select previous, else next, else first, else null
+          const newActiveIndex = Math.max(0, pageIndexToDelete -1);
+          setActivePageId(newPages[newActiveIndex]?.id || newPages[0]?.id || null);
         } else {
           setActivePageId(null);
         }
@@ -48,21 +66,29 @@ const App: React.FC = () => {
     setContextMenuState(null);
   }, [activePageId]);
 
-  const handleDuplicatePage = useCallback((id: string) => {
+  const handleDuplicatePage = useCallback((id: string) => { // Renamed to "Copy" in UI
     setPages(currentPages => {
       const pageToDuplicate = currentPages.find(page => page.id === id);
       if (!pageToDuplicate) return currentPages;
       
+      let newPageName = `${pageToDuplicate.name} (Copy)`;
+      let counter = 1;
+      const existingNames = new Set(currentPages.map(p => p.name));
+      while(existingNames.has(newPageName)) {
+        counter++;
+        newPageName = `${pageToDuplicate.name} (Copy ${counter})`;
+      }
+
       const newPage: Page = { 
         ...pageToDuplicate, 
         id: self.crypto.randomUUID(),
-        name: `${pageToDuplicate.name} (Copy)` 
+        name: newPageName
       };
       
       const index = currentPages.findIndex(page => page.id === id);
       const newPages = [...currentPages];
       newPages.splice(index + 1, 0, newPage);
-      setActivePageId(newPage.id); // Set new duplicated page as active
+      setActivePageId(newPage.id); 
       return newPages;
     });
     setContextMenuState(null);
@@ -77,6 +103,19 @@ const App: React.FC = () => {
     setContextMenuState(null);
   }, []);
 
+  const handleSetAsFirstPage = useCallback((id: string) => {
+    setPages(currentPages => {
+      const pageToMove = currentPages.find(p => p.id === id);
+      if (!pageToMove) return currentPages;
+
+      const otherPages = currentPages.filter(p => p.id !== id);
+      const newPages = [pageToMove, ...otherPages];
+      setActivePageId(id); // Keep the moved page active
+      return newPages;
+    });
+    setContextMenuState(null);
+  }, []);
+
   const handleDragStartPage = useCallback((id: string, event: React.DragEvent<HTMLDivElement>) => {
     setDraggedPageId(id);
   }, []);
@@ -87,8 +126,6 @@ const App: React.FC = () => {
   }, []);
 
   const handleMovePage = useCallback((draggedId: string, targetDropZoneLineIndex: number) => {
-    if (!draggedPageId) return; // Should use draggedId from params for consistency
-
     setPages(currentPages => {
       const sourcePageIndex = currentPages.findIndex(p => p.id === draggedId);
       if (sourcePageIndex === -1) return currentPages;
@@ -96,12 +133,8 @@ const App: React.FC = () => {
       const newPages = [...currentPages];
       const [itemToMove] = newPages.splice(sourcePageIndex, 1);
   
-      // The targetDropZoneLineIndex is the line *before* which to insert.
-      // If dragging downwards past its original position, the target index effectively shifts.
       let actualInsertionIndex = targetDropZoneLineIndex;
       if (sourcePageIndex < targetDropZoneLineIndex) {
-        // If item was moved from an earlier position to a later position,
-        // the target index in the modified array (after splice) is one less.
         actualInsertionIndex--;
       }
       
@@ -110,7 +143,7 @@ const App: React.FC = () => {
       newPages.splice(actualInsertionIndex, 0, itemToMove);
       return newPages;
     });
-  }, [draggedPageId]); // Keep draggedPageId dependency if it's used to gate the call, but use param `draggedId` inside.
+  }, []); 
 
 
   const handleDragOverDropZone = useCallback((index: number, event: React.DragEvent<HTMLDivElement>) => {
@@ -121,8 +154,9 @@ const App: React.FC = () => {
   }, [draggedPageId]);
 
   const handleDragLeaveDropZone = useCallback(() => {
-     // Intentionally left sparse; specific visual cues are on DropZone itself.
-     // Could clear dragOverDropZoneIndex here if not hovering any valid zone after a delay.
+    // Resetting dragOverDropZoneIndex here can be problematic if quickly moving between zones.
+    // It's generally better to let the dragOver on the new zone set it.
+    // If a definitive "exit" from all drop zones is needed, that's more complex.
   }, []);
 
 
@@ -131,10 +165,16 @@ const App: React.FC = () => {
     event.stopPropagation();
     const rect = buttonRef.current?.getBoundingClientRect();
     if (rect) {
+      let xPosition = rect.left;
+      const menuWidth = 192; 
+      if (xPosition + menuWidth > window.innerWidth) {
+        xPosition = window.innerWidth - menuWidth - 10; 
+      }
+
       setContextMenuState({
         pageId,
-        x: rect.left, // Position relative to viewport
-        y: rect.bottom + 5,
+        x: xPosition, 
+        y: rect.bottom + 8, 
       });
       lastOpenedContextMenuButtonRef.current = buttonRef.current;
     }
@@ -142,23 +182,23 @@ const App: React.FC = () => {
 
   const handleCloseContextMenu = useCallback(() => {
     setContextMenuState(null);
-    // lastOpenedContextMenuButtonRef.current = null; // Clearing this is handled by ContextMenu's own logic or if needed here.
   }, []);
   
   return (
-    <div className="flex justify-center items-start min-h-screen pt-5">
+    <div className="flex flex-col items-center min-h-screen pt-10 px-4">
       <PageNavigation
         pages={pages}
         activePageId={activePageId}
         contextMenuState={contextMenuState}
         draggedPageId={draggedPageId}
         dragOverDropZoneIndex={dragOverDropZoneIndex}
-        lastOpenedContextMenuButtonRef={lastOpenedContextMenuButtonRef} // Pass down the ref
+        lastOpenedContextMenuButtonRef={lastOpenedContextMenuButtonRef} 
         onSelectPage={handleSelectPage}
         onAddPage={handleAddPage}
         onDeletePage={handleDeletePage}
-        onDuplicatePage={handleDuplicatePage}
+        onDuplicatePage={handleDuplicatePage} // "Copy"
         onRenamePage={handleRenamePage}
+        onSetAsFirstPage={handleSetAsFirstPage} // Pass new handler
         onMovePage={handleMovePage}
         onDragStartPage={handleDragStartPage}
         onDragEndPage={handleDragEndPage}

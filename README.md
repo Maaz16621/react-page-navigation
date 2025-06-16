@@ -85,4 +85,12 @@ The `dist/` folder contains a pre-built version of the application (`dist/app.js
 4.  **Access in Browser**:
     Open your web browser and navigate to `http://localhost:3000` (or the port specified if `process.env.PORT` is set).
 
+## Environment Variables (e.g., API_KEY)
 
+If your application's client-side code (e.g., in `components/App.tsx` or other components) needs to access environment variables like an `API_KEY` (e.g., for a service like Gemini API), these variables **must be embedded into the client-side JavaScript bundle during the build process** that generates `dist/app.js`.
+
+*   Frontend build tools (like Vite, Webpack, Parcel, Create React App) typically handle this by substituting `process.env.YOUR_VARIABLE` with actual values at build time, often sourced from `.env` files or system environment variables.
+*   The provided `server.js` **only serves static files**. It does **not** inject environment variables into your client-side JavaScript bundle. This injection must happen as part of your frontend build pipeline.
+
+**Security Note**: Never hardcode sensitive API keys directly into your source code that gets committed to version control. Always use environment variables managed by your build system and deployment environment. Ensure `.env` files containing sensitive keys are added to your `.gitignore` file.
+```

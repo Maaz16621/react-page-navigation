@@ -1,22 +1,23 @@
-
 import React, { useRef, useEffect } from 'react';
-import { PencilIcon, DocumentDuplicateIcon, TrashIcon } from '../constants';
+import { PencilIcon, DocumentDuplicateIcon, TrashIcon, FlagIcon } from '../constants'; // Added FlagIcon
 
 interface ContextMenuProps {
   pageId: string;
   position: { x: number; y: number };
+  onSetAsFirstPage: (pageId: string) => void; // New prop
   onRename: (pageId: string) => void;
-  onDuplicate: (pageId: string) => void;
+  onDuplicate: (pageId: string) => void; // This will now be 'onCopy' effectively
   onDelete: (pageId: string) => void;
   onClose: () => void;
-  triggerButtonRef: React.RefObject<HTMLButtonElement | null>; // Updated type
+  triggerButtonRef: React.RefObject<HTMLButtonElement | null>;
 }
 
 const ContextMenu: React.FC<ContextMenuProps> = ({
   pageId,
   position,
+  onSetAsFirstPage,
   onRename,
-  onDuplicate,
+  onDuplicate, // Keep prop name, but label changes
   onDelete,
   onClose,
   triggerButtonRef,
@@ -28,7 +29,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
       if (
         menuRef.current &&
         !menuRef.current.contains(event.target as Node) &&
-        triggerButtonRef.current && // Check if current is not null
+        triggerButtonRef.current && 
         !triggerButtonRef.current.contains(event.target as Node)
       ) {
         onClose();
@@ -36,7 +37,6 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    // Consider adding keydown listener for "Escape" key to close menu
     const handleEscapeKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         onClose();
@@ -52,7 +52,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 
   const handleAction = (action: () => void) => {
     action();
-    onClose(); // Close menu after action
+    onClose(); 
   };
 
   return (
@@ -63,8 +63,15 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
       data-testid={`context-menu-${pageId}`}
       role="menu"
       aria-orientation="vertical"
-      aria-labelledby={`page-item-${pageId}-options-button`} // Assuming the trigger button might have an ID like this
+      aria-labelledby={`page-item-${pageId}-options-button`} 
     >
+      <button
+        onClick={() => handleAction(() => onSetAsFirstPage(pageId))}
+        className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 flex items-center transition-colors"
+        role="menuitem"
+      >
+        <FlagIcon /> Set as first page
+      </button>
       <button
         onClick={() => handleAction(() => onRename(pageId))}
         className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 flex items-center transition-colors"
@@ -77,7 +84,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
         className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 flex items-center transition-colors"
         role="menuitem"
       >
-        <DocumentDuplicateIcon /> Duplicate
+        <DocumentDuplicateIcon /> Copy
       </button>
       <button
         onClick={() => handleAction(() => onDelete(pageId))}
