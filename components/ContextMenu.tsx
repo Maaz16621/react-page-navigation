@@ -99,7 +99,9 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
       >
         <DocumentDuplicateIcon /> Duplicate
       </button>
-      <hr className="my-1 border-t border-slate-200" /> {/* Divider added here */}
+      <div className="flex justify-center my-1"> {/* Wrapper for centering HR */}
+        <hr className="w-[90%] border-t border-slate-300" /> {/* Centered divider, 80% width */}
+      </div>
       <button
         onClick={() => handleAction(() => onDelete(pageId))}
         className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 flex items-center transition-colors"
