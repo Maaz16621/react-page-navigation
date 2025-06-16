@@ -59,7 +59,7 @@ const PageItem: React.FC<PageItemProps> = ({
 
   // Base classes for the icon
   const baseIconClasses = "w-5 h-5 mr-2";
-  const activeIconClasses = "text-yellow-500"; // Changed from text-slate-700
+  const activeIconClasses = "text-yellow-500"; 
   const inactiveIconClasses = "text-slate-500 group-hover:text-slate-600";
 
   // Base classes for the ellipsis button
