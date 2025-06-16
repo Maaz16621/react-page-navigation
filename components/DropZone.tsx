@@ -67,8 +67,8 @@ const DropZone: React.FC<DropZoneProps> = ({
           <div className="w-3 h-px border-t border-dotted border-gray-400" />
           <button
             onClick={handleAddClick}
-            className={`p-1 mx-1 rounded-full text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500
-                        ${isDraggingActive ? 'opacity-50 cursor-default' : 'hover:text-blue-600 hover:bg-blue-100'}`}
+            className={`p-1 mx-1 rounded-full text-slate-500 transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500
+                        ${isDraggingActive ? 'opacity-50 cursor-default bg-slate-100' : 'bg-white hover:text-blue-600 hover:bg-blue-100 shadow-sm hover:shadow-md'}`}
             aria-label={`Add new page at position ${index}`}
             disabled={isDraggingActive} // Disable button if a global drag is happening
           >
