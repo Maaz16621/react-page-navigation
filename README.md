@@ -76,7 +76,7 @@ The `dist/` folder contains a pre-built version of the application (`dist/app.js
 2.  **Ensure `dist/` files are up-to-date**:
     The `dist/app.js` file should be the compiled output of your TypeScript/React source code. The method for generating/updating this file (e.g., a build script) is not explicitly defined in the provided project structure but is crucial. For this example, we assume `dist/app.js` is already correctly bundled.
 
-3.  **Start the Node.js Server**:
+3.  **Start the App**:
     Run command npm run dev to start the app
     ```
 
