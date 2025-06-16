@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Page, ContextMenuState, PageIconType } from '../types';
-import PageItem from '../PageItem'; 
+import PageItem from './PageItem'; 
 import DropZone from './DropZone';
 import ContextMenu from './ContextMenu';
 import { PlusIcon } from '../constants';
@@ -15,9 +15,10 @@ interface PageNavigationProps {
   onSelectPage: (id: string) => void;
   onAddPage: (index: number) => void; 
   onDeletePage: (id: string) => void;
-  onDuplicatePage: (id:string) => void; // Will be "Copy"
+  onCopyPage: (id:string) => void; 
+  onDuplicateActualPage: (id: string) => void; // New prop for actual duplicate
   onRenamePage: (id: string, newName: string) => void; 
-  onSetAsFirstPage: (id: string) => void; // New prop
+  onSetAsFirstPage: (id: string) => void; 
   onMovePage: (draggedId: string, targetIndex: number) => void;
   onDragStartPage: (id: string, event: React.DragEvent<HTMLDivElement>) => void;
   onDragEndPage: (event: React.DragEvent<HTMLDivElement>) => void;
@@ -37,9 +38,10 @@ const PageNavigation: React.FC<PageNavigationProps> = ({
   onSelectPage,
   onAddPage,
   onDeletePage,
-  onDuplicatePage,
+  onCopyPage,
+  onDuplicateActualPage,
   onRenamePage,
-  onSetAsFirstPage, // Destructure new prop
+  onSetAsFirstPage,
   onMovePage,
   onDragStartPage,
   onDragEndPage,
@@ -62,9 +64,9 @@ const PageNavigation: React.FC<PageNavigationProps> = ({
   };
 
   return (
-    <div className="w-full mx-auto">
+    <div className="w-full max-w-4xl mx-auto">
       <div 
-        className="flex items-center  justify-center bg-gray-100 p-2 rounded-lg shadow-md overflow-x-auto min-h-[64px]"
+        className="flex items-center bg-gray-100 p-2 rounded-lg shadow-md overflow-x-auto min-h-[64px]"
         role="toolbar"
         aria-label="Page navigation"
       >
@@ -73,13 +75,13 @@ const PageNavigation: React.FC<PageNavigationProps> = ({
           onDrop={handleDrop}
           isDragOver={dragOverDropZoneIndex === 0 && draggedPageId !== null}
           isDraggingActive={draggedPageId !== null}
-          canShowAddButton={false} // Cannot add before the first page using inline button
+          canShowAddButton={false} 
         />
         {pages.map((page, index) => (
           <React.Fragment key={page.id}>
             <div 
-              onDragOver={(e) => onDragOverDropZone(index, e)} // This might not be needed if PageItem itself handles drag over for its own area
-              onDragLeave={onDragLeaveDropZone} // Same as above
+              onDragOver={(e) => onDragOverDropZone(index, e)} 
+              onDragLeave={onDragLeaveDropZone} 
             >
               <PageItem
                 page={page}
@@ -95,27 +97,26 @@ const PageNavigation: React.FC<PageNavigationProps> = ({
             <DropZone
               index={index + 1}
               onDrop={handleDrop}
-              onAddPageInZone={onAddPage} // Use onAddPage for inline adding
+              onAddPageInZone={onAddPage} 
               isDragOver={dragOverDropZoneIndex === (index + 1) && draggedPageId !== null}
               isDraggingActive={draggedPageId !== null}
-              canShowAddButton={true} // Show add button between items
+              canShowAddButton={true} 
             />
           </React.Fragment>
         ))}
-        {/* The last DropZone (if pages.length is 0) or main Add Page button handles adding at the very end */}
-        {pages.length === 0 && ( // If no pages, the first dropzone will implicitly be the one to add to.
-             <DropZone // This acts like a final drop zone when no pages exist yet.
-             index={0} // Adding to index 0 when list is empty
+        {pages.length === 0 && (
+             <DropZone
+             index={0} 
              onDrop={handleDrop}
              onAddPageInZone={onAddPage}
              isDragOver={dragOverDropZoneIndex === 0 && draggedPageId !== null}
              isDraggingActive={draggedPageId !== null}
-             canShowAddButton={true} // Show add button if no pages
+             canShowAddButton={true} 
            />
         )}
         <button
-          onClick={() => onAddPage(pages.length)} // Add to the end
-          className="flex items-center flex-shrink-0 ml-1 px-3 py-2 h-10 rounded-md text-sm bg-white hover:bg-blue-500/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-blue-500 transition-colors"
+          onClick={() => onAddPage(pages.length)} 
+          className="flex items-center flex-shrink-0 ml-1 px-3 py-2 h-10 rounded-md text-sm text-blue-600 hover:bg-blue-500/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-blue-500 transition-colors"
           aria-label="Add new page to end"
         >
           <PlusIcon className="w-5 h-5 mr-1" />
@@ -127,13 +128,14 @@ const PageNavigation: React.FC<PageNavigationProps> = ({
         <ContextMenu
           pageId={contextMenuState.pageId}
           position={{ x: contextMenuState.x, y: contextMenuState.y }}
-          onSetAsFirstPage={onSetAsFirstPage} // Pass new handler
+          onSetAsFirstPage={onSetAsFirstPage} 
           onRename={(id) => {
             const pageToRename = pages.find(p => p.id === id);
             const newName = prompt("Enter new page name:", pageToRename?.name || "");
             if (newName && newName.trim() !== "") onRenamePage(id, newName.trim());
           }}
-          onDuplicate={onDuplicatePage} // Label is "Copy" in ContextMenu.tsx
+          onCopy={onCopyPage} 
+          onDuplicateActual={onDuplicateActualPage} // Pass new prop
           onDelete={onDeletePage}
           onClose={onCloseContextMenu}
           triggerButtonRef={lastOpenedContextMenuButtonRef} 

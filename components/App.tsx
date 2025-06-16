@@ -21,20 +21,17 @@ const App: React.FC = () => {
 
   const handleAddPage = useCallback((index: number) => {
     let newPageName = "New Page";
-    let counter = 1; // Start counter at 1 for appending
+    let counter = 1; 
     const existingNames = new Set(pages.map(p => p.name));
     
-    // Create a base name if "New Page" itself is taken
     if (existingNames.has(newPageName)) {
         newPageName = `New Page ${pages.length + 1}`; 
     }
 
-    // Ensure unique name by appending counter if needed
     while (existingNames.has(newPageName)) {
       counter++;
       newPageName = `New Page ${pages.length + counter}`;
     }
-     // Final fallback if somehow still clashing (highly unlikely with the above)
     if (existingNames.has(newPageName)) newPageName = `Page ${self.crypto.randomUUID().substring(0,4)}`;
 
 
@@ -54,7 +51,6 @@ const App: React.FC = () => {
       const newPages = currentPages.filter(page => page.id !== id);
       if (activePageId === id) {
         if (newPages.length > 0) {
-          // Try to select previous, else next, else first, else null
           const newActiveIndex = Math.max(0, pageIndexToDelete -1);
           setActivePageId(newPages[newActiveIndex]?.id || newPages[0]?.id || null);
         } else {
@@ -66,17 +62,45 @@ const App: React.FC = () => {
     setContextMenuState(null);
   }, [activePageId]);
 
-  const handleDuplicatePage = useCallback((id: string) => { // Renamed to "Copy" in UI
+  const handleCopyPage = useCallback((id: string) => { // Renamed from handleDuplicatePage for clarity
     setPages(currentPages => {
-      const pageToDuplicate = currentPages.find(page => page.id === id);
-      if (!pageToDuplicate) return currentPages;
+      const pageToCopy = currentPages.find(page => page.id === id);
+      if (!pageToCopy) return currentPages;
       
-      let newPageName = `${pageToDuplicate.name} (Copy)`;
+      let newPageName = `${pageToCopy.name} (Copy)`;
       let counter = 1;
       const existingNames = new Set(currentPages.map(p => p.name));
       while(existingNames.has(newPageName)) {
         counter++;
-        newPageName = `${pageToDuplicate.name} (Copy ${counter})`;
+        newPageName = `${pageToCopy.name} (Copy ${counter})`;
+      }
+
+      const newPage: Page = { 
+        ...pageToCopy, 
+        id: self.crypto.randomUUID(),
+        name: newPageName
+      };
+      
+      const index = currentPages.findIndex(page => page.id === id);
+      const newPages = [...currentPages];
+      newPages.splice(index + 1, 0, newPage);
+      setActivePageId(newPage.id); 
+      return newPages;
+    });
+    setContextMenuState(null);
+  }, []);
+
+  const handleDuplicatePageActual = useCallback((id: string) => {
+    setPages(currentPages => {
+      const pageToDuplicate = currentPages.find(page => page.id === id);
+      if (!pageToDuplicate) return currentPages;
+      
+      let newPageName = `${pageToDuplicate.name} (Duplicate)`;
+      let counter = 1;
+      const existingNames = new Set(currentPages.map(p => p.name));
+      while(existingNames.has(newPageName)) {
+        counter++;
+        newPageName = `${pageToDuplicate.name} (Duplicate ${counter})`;
       }
 
       const newPage: Page = { 
@@ -110,7 +134,7 @@ const App: React.FC = () => {
 
       const otherPages = currentPages.filter(p => p.id !== id);
       const newPages = [pageToMove, ...otherPages];
-      setActivePageId(id); // Keep the moved page active
+      setActivePageId(id); 
       return newPages;
     });
     setContextMenuState(null);
@@ -154,9 +178,7 @@ const App: React.FC = () => {
   }, [draggedPageId]);
 
   const handleDragLeaveDropZone = useCallback(() => {
-    // Resetting dragOverDropZoneIndex here can be problematic if quickly moving between zones.
-    // It's generally better to let the dragOver on the new zone set it.
-    // If a definitive "exit" from all drop zones is needed, that's more complex.
+    // Intentionally sparse
   }, []);
 
 
@@ -196,9 +218,10 @@ const App: React.FC = () => {
         onSelectPage={handleSelectPage}
         onAddPage={handleAddPage}
         onDeletePage={handleDeletePage}
-        onDuplicatePage={handleDuplicatePage} // "Copy"
+        onCopyPage={handleCopyPage} // Changed from onDuplicatePage
+        onDuplicateActualPage={handleDuplicatePageActual} // New prop
         onRenamePage={handleRenamePage}
-        onSetAsFirstPage={handleSetAsFirstPage} // Pass new handler
+        onSetAsFirstPage={handleSetAsFirstPage} 
         onMovePage={handleMovePage}
         onDragStartPage={handleDragStartPage}
         onDragEndPage={handleDragEndPage}
