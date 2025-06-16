@@ -144,7 +144,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
       
       {/* Divider before delete */}
       <div className="flex justify-center my-1 px-2"> {/* Added px-2 for slight inset */}
-        <hr className="w-4/5 border-t border-slate-300" /> 
+        <hr className="w-[90%] border-t border-slate-300" /> 
       </div>
 
       {/* Delete action */}
