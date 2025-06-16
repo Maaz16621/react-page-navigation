@@ -1,13 +1,14 @@
+
 import React from 'react';
 import { PlusIcon } from '../constants';
 
 interface DropZoneProps {
   index: number;
   onDrop: (index: number) => void;
-  onAddPageInZone?: (index: number) => void; // Optional: only for dropzones that can add
+  onAddPageInZone?: (index: number) => void;
   isDragOver: boolean;
   isDraggingActive: boolean;
-  canShowAddButton: boolean; // Determines if the '+' button should be shown
+  canShowAddButton: boolean;
 }
 
 const DropZone: React.FC<DropZoneProps> = ({ 
@@ -29,37 +30,52 @@ const DropZone: React.FC<DropZoneProps> = ({
   };
 
   const handleAddClick = (event: React.MouseEvent) => {
-    event.stopPropagation(); // Prevent any parent click handlers
-    if (onAddPageInZone) {
+    event.stopPropagation();
+    if (onAddPageInZone && !isDraggingActive) { // Prevent click if a drag is active anywhere
       onAddPageInZone(index);
     }
   };
 
-  // Base width for the drop zone area, allows for "+" icon or drag indication
-  const baseWidthClass = 'w-8'; 
-  const dragOverWidthClass = 'w-12'; // Wider when dragging over for better visual cue
+  let widthClass: string;
+  if (isDragOver) {
+    widthClass = 'w-12'; // Wider when dragging over this specific zone
+  } else if (canShowAddButton) {
+    // Width accommodates: left-line (w-3) + btn_margin (mx-1) + button (p-1 + icon w-5 + p-1) + btn_margin (mx-1) + right-line (w-3)
+    // Approx: 3 + 1 + 1+5+1 + 1 + 3 = 15. So w-16 gives a bit of space.
+    widthClass = 'w-16'; 
+  } else {
+    widthClass = 'w-4'; // Narrow zone for the first drop target (when pages exist) or if no add button
+  }
 
   return (
     <div
       onDragOver={handleDragOver}
       onDrop={handleDrop}
-      className={`relative flex-shrink-0 flex items-center justify-center transition-all duration-150 ease-in-out group
-        ${isDragOver ? `${dragOverWidthClass} bg-blue-500/10` : baseWidthClass} 
-        h-10`} // Consistent height with PageItems
+      className={`relative flex-shrink-0 flex items-center justify-center transition-all duration-150 ease-in-out
+        ${widthClass} 
+        ${isDragOver ? 'bg-blue-500/10' : ''} 
+        h-10`}
       data-testid={`drop-zone-${index}`}
-      aria-hidden={!isDragOver && (!canShowAddButton || isDraggingActive) ? true : undefined}
+      aria-hidden={!isDragOver && (!canShowAddButton || (isDraggingActive && !isDragOver)) ? true : undefined}
     >
       {isDragOver && (
         <div className="absolute inset-y-0 left-1/2 w-1 bg-blue-500 transform -translate-x-1/2 rounded-full" aria-hidden="true"></div>
       )}
-      {!isDragOver && !isDraggingActive && canShowAddButton && onAddPageInZone && (
-        <button
-          onClick={handleAddClick}
-          className="p-1 rounded-full text-slate-400 hover:text-blue-600 hover:bg-blue-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-          aria-label={`Add new page at position ${index}`}
-        >
-          <PlusIcon className="w-5 h-5" />
-        </button>
+
+      {!isDragOver && canShowAddButton && onAddPageInZone && (
+        <div className="flex items-center justify-center w-full" aria-hidden="true">
+          <div className="w-3 h-px border-t border-dotted border-gray-400" />
+          <button
+            onClick={handleAddClick}
+            className={`p-1 mx-1 rounded-full text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500
+                        ${isDraggingActive ? 'opacity-50 cursor-default' : 'hover:text-blue-600 hover:bg-blue-100'}`}
+            aria-label={`Add new page at position ${index}`}
+            disabled={isDraggingActive} // Disable button if a global drag is happening
+          >
+            <PlusIcon className="w-5 h-5" />
+          </button>
+          <div className="w-3 h-px border-t border-dotted border-gray-400" />
+        </div>
       )}
     </div>
   );
